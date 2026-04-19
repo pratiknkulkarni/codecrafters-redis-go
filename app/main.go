@@ -9,6 +9,15 @@ import (
 var _ = net.Listen
 var _ = os.Exit
 
+func handleConnection(conn net.Conn) {
+	for {
+		buf := make([]byte, 1024)
+		_, _ = conn.Read(buf)
+
+		conn.Write([]byte("+PONG\r\n"))
+	}
+}
+
 func main() {
 	l, err := net.Listen("tcp", "0.0.0.0:6379")
 
@@ -17,16 +26,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	conn, err := l.Accept()
-
-	buf := make([]byte, 1024)
 	for {
-		_, err := conn.Read(buf)
+		conn, err := l.Accept()
+
 		if err != nil {
 			fmt.Println("Error accepting connection: ", err.Error())
 			os.Exit(1)
 		}
 
-		conn.Write([]byte("+PONG\r\n"))
+		go handleConnection(conn)
 	}
 }
